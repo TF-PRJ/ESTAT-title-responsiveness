@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Title Responsiveness with button</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 180px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 800;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+            padding-top: 20px;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+        }
+
+        #commentary-button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: #FFCC00;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 1.2rem;
+            line-height: 1.5rem;
+            padding: 6px 12px;
+            justify-content: center;
+        }
+
+        #commentary-button svg {
+            margin-left: 4px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 180px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 180px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+            #commentary-button {
+                font-size: 1.4rem;
+                line-height: 1.8rem;
+                padding: 8px 16px;
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+            #cf_app_header {
+                min-height: 160px;
+            }
+            #cf_app_header_title {
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+            }
+            .cf_app_instructions {
+                font-size: 1rem;
+                line-height: 1.5rem;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 130px;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+            .cf_app_instructions {
+                display: none;
+            }
+            #commentary-button {
+                width: fit-content;
+                justify-content: flex-start;
+                font-size: 1.1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 140px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+            }
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            .cf_logo {
+                max-width: 50%;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.3rem;
+                width: fit-content;
+                justify-content: flex-start;
+            }
+            #cf_estat_logo_link img {
+                content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cf_app_top" role="banner">
+        <div class="cf_app_inner">
+            <div id="cf_app_header">
+                <div id="cf_app_header_title">
+                    <h1 class="cf_app_title" id="cf_app_title">Demonstration of a title in a banner</h1>
+                    <div class="cf_app_instructions">Demonstration of a subtitle in a banner</div>  
+                    <button id="commentary-button" class="ecl-button ecl-button--call" type="button">
+                        <span class="ecl-button__label" data-ecl-label="true">
+                            <span class="read-sentence">Read the </span>Eurostat commentary
+                        </span>
+                    </button>
+                </div>
+                <div id="cf_app_header_ribbon">
+                    <img alt="" src="https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg">
+                </div>
+                <a id="cf_estat_logo_link" tabindex="0" href="https://ec.europa.eu/eurostat/" target="_blank">
+                    <img alt="Home - Eurostat" src="https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg" class="cf_logo">
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
