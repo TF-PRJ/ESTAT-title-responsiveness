@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Before / After – Title Responsiveness</title>
+    <style>
+        *, *:before, *:after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+        }
+
+        /* ── Header ── */
+        .page-header {
+            background: #082b7a;
+            color: white;
+            padding: 28px 32px 20px;
+        }
+        .page-header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+        .page-header p  { margin: 0; opacity: .75; font-size: .95rem; }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            padding: 20px 32px 0;
+            background: #082b7a;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 10px 20px;
+            border-radius: 6px 6px 0 0;
+            background: rgba(255,255,255,.15);
+            color: white;
+            cursor: pointer;
+            font-size: .9rem;
+            border: none;
+            transition: background .15s;
+            white-space: nowrap;
+        }
+        .tab:hover  { background: rgba(255,255,255,.28); }
+        .tab.active { background: #f0f2f5; color: #082b7a; font-weight: 700; }
+
+        /* ── Main layout ── */
+        .content { padding: 28px 32px; }
+
+        .panel { display: none; }
+        .panel.active { display: block; }
+
+        /* ── Controls bar ── */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .controls label { font-size: .85rem; font-weight: 600; color: #555; white-space: nowrap; }
+        .width-slider   { flex: 1; min-width: 180px; max-width: 360px; accent-color: #082b7a; }
+        .width-value    { font-size: .85rem; font-weight: 700; color: #082b7a; min-width: 52px; }
+
+        /* ── Comparison grid ── */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,.12);
+        }
+
+        .col-header {
+            padding: 10px 16px;
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+        .col-header.before { background: #d32f2f; color: white; }
+        .col-header.after  { background: #2e7d32; color: white; }
+        .col-header span {
+            display: block;
+            font-weight: 400;
+            letter-spacing: 0;
+            text-transform: none;
+            font-size: .78rem;
+            opacity: .85;
+            margin-top: 2px;
+        }
+
+        /* Outer wrapper clips overflow and gives the grey background */
+        .iframe-outer {
+            background: #ccc;
+            overflow: hidden;
+            height: 220px;
+            position: relative;
+        }
+
+        /* Inner wrapper is what we actually scale */
+        .iframe-wrap {
+            transform-origin: top left;
+            position: absolute;
+            top: 0; left: 0;
+        }
+
+        .iframe-wrap iframe {
+            display: block;
+            border: none;
+            height: 220px; /* overridden by JS to compensate scale */
+        }
+
+        /* ── Changes summary ── */
+        .changes {
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 16px 20px;
+            box-shadow: 0 1px 6px rgba(0,0,0,.08);
+            font-size: .88rem;
+        }
+        .changes h3 { margin: 0 0 10px; font-size: .9rem; color: #333; }
+        .diff-list  { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+        .diff-list li { display: flex; gap: 8px; align-items: flex-start; }
+        .diff-tag {
+            font-size: .75rem; font-weight: 700;
+            padding: 2px 7px; border-radius: 3px;
+            white-space: nowrap; line-height: 1.4;
+        }
+        .diff-tag.removed { background: #ffebee; color: #c62828; }
+        .diff-tag.added   { background: #e8f5e9; color: #1b5e20; }
+        code { background: #f5f5f5; padding: 1px 5px; border-radius: 3px; font-size: .85em; }
+
+        @media (max-width: 640px) {
+            .tabs { padding: 12px 12px 0; }
+            .content { padding: 16px 12px; }
+            .comparison { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-header">
+    <h1>Before / After — Title Responsiveness</h1>
+    <p>Comparison between the original versions and the updated versions (prefix <strong>c_</strong>) of the 4 banner layouts.</p>
+</div>
+
+<div class="tabs">
+    <button class="tab active"  onclick="showPanel('title',                  this)">Title only</button>
+    <button class="tab"         onclick="showPanel('title-subtitle',         this)">Title + Subtitle</button>
+    <button class="tab"         onclick="showPanel('title-button',           this)">Title + Button</button>
+    <button class="tab"         onclick="showPanel('title-subtitle-button',  this)">Title + Subtitle + Button</button>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════════════ PANEL 1 ══ -->
+<div class="panel active" id="panel-title">
+    <div class="controls">
+        <label>Simulated viewport:</label>
+        <input type="range" class="width-slider" min="320" max="1400" value="1400"
+               oninput="applySlider('title', +this.value)">
+        <span class="width-value" id="wv-title">1400px</span>
+    </div>
+    <div class="comparison" id="cmp-title">
+        <div class="col-header before">Before<span>title.html</span></div>
+        <div class="col-header after">After<span>c_title.html</span></div>
+        <div class="iframe-outer" id="outer-title-before">
+            <div class="iframe-wrap" id="wrap-title-before">
+                <iframe srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 100px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+            padding-bottom: 20px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 100px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 120px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+         #cf_app_header {
+                min-height: 100px;
+            }
+
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+            }
+
+            .cf_app_instructions {
+                display: none;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+                padding-bottom: 20px;
+                padding-top: 20px;
+            }
+
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            
+            #cf_estat_logo_link img {
+        content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+            
+            .cf_logo {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>" title="Before: title only"></iframe>
+            </div>
+        </div>
+        <div class="iframe-outer" id="outer-title-after">
+            <div class="iframe-wrap" id="wrap-title-after">
+                <iframe srcdoc="
+<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 90px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+            padding-bottom: 20px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 90px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 120px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+         #cf_app_header {
+                min-height: 100px;
+            }
+
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+            }
+
+            .cf_app_instructions {
+                display: none;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+                padding-bottom: 20px;
+                padding-top: 20px;
+            }
+
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            
+            #cf_estat_logo_link img {
+        content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+            
+            .cf_logo {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+" title="After: title only"></iframe>
+            </div>
+        </div>
+    </div>
+    <div class="changes">
+        <h3>Key changes</h3>
+        <ul class="diff-list">
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header</code> → <code>min-height: 100px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header</code> → <code>min-height: 90px</code> — more compact header</span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header_ribbon</code> → <code>height: 100px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header_ribbon</code> → <code>height: 90px</code> — ribbon aligned to the new header height</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════ PANEL 2 ══ -->
+<div class="panel" id="panel-title-subtitle">
+    <div class="controls">
+        <label>Simulated viewport:</label>
+        <input type="range" class="width-slider" min="320" max="1400" value="1400"
+               oninput="applySlider('title-subtitle', +this.value)">
+        <span class="width-value" id="wv-title-subtitle">1400px</span>
+    </div>
+    <div class="comparison" id="cmp-title-subtitle">
+        <div class="col-header before">Before<span>title_subtitle.html</span></div>
+        <div class="col-header after">After<span>c_title_subtitle.html</span></div>
+        <div class="iframe-outer" id="outer-title-subtitle-before">
+            <div class="iframe-wrap" id="wrap-title-subtitle-before">
+                <iframe srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE + SUBTITLE</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 100px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+            padding-top: 20px;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+            padding-bottom: 20px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 120px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+
+            #cf_app_header {
+                min-height: 100px;
+            }
+
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+                padding-bottom: 0px;
+                padding-top: 0px;
+            }
+
+            .cf_app_instructions {
+                display: none;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+                padding-bottom: 20px;
+                padding-top: 20px;
+            }
+
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            
+            #cf_estat_logo_link img {
+        content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+            
+            .cf_logo {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                    <div class=&quot;cf_app_instructions&quot;>Demonstration of a subtitle in a banner</div>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>" title="Before: title + subtitle"></iframe>
+            </div>
+        </div>
+        <div class="iframe-outer" id="outer-title-subtitle-after">
+            <div class="iframe-wrap" id="wrap-title-subtitle-after">
+                <iframe srcdoc="
+<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE + SUBTITLE</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 90px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 90px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 120px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+
+            #cf_app_header {
+                min-height: 100px;
+            }
+
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+                padding-bottom: 0px;
+                padding-top: 0px;
+            }
+
+            .cf_app_instructions {
+                display: none;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+                padding-bottom: 20px;
+                padding-top: 20px;
+            }
+
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            
+            #cf_estat_logo_link img {
+        content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+            
+            .cf_logo {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                    <div class=&quot;cf_app_instructions&quot;>Demonstration of a subtitle in a banner</div>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+" title="After: title + subtitle"></iframe>
+            </div>
+        </div>
+    </div>
+    <div class="changes">
+        <h3>Key changes</h3>
+        <ul class="diff-list">
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header</code> → <code>min-height: 100px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header</code> → <code>min-height: 90px</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header_ribbon</code> → <code>height: 120px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header_ribbon</code> → <code>height: 90px</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>.cf_app_title</code> → <code>padding-top: 20px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>.cf_app_title</code> → no <code>padding-top</code> — title centered via flexbox</span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>.cf_app_instructions</code> → <code>padding-bottom: 20px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>.cf_app_instructions</code> → no <code>padding-bottom</code></span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════ PANEL 3 ══ -->
+<div class="panel" id="panel-title-button">
+    <div class="controls">
+        <label>Simulated viewport:</label>
+        <input type="range" class="width-slider" min="320" max="1400" value="1400"
+               oninput="applySlider('title-button', +this.value)">
+        <span class="width-value" id="wv-title-button">1400px</span>
+    </div>
+    <div class="comparison" id="cmp-title-button">
+        <div class="col-header before">Before<span>title-button.html</span></div>
+        <div class="col-header after">After<span>c_title_button.html</span></div>
+        <div class="iframe-outer" id="outer-title-button-before">
+            <div class="iframe-wrap" id="wrap-title-button-before">
+                <iframe srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE + BUTTON</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 140px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+            padding-top: 20px;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+        }
+
+        #commentary-button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: #FFCC00;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 1.2rem;
+            line-height: 1.5rem;
+            padding: 6px 12px;
+            justify-content: center;
+        }
+
+        #commentary-button svg {
+            margin-left: 4px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 140px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 180px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+            #commentary-button {
+                font-size: 1.4rem;
+                line-height: 1.8rem;
+                padding: 8px 16px;
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+            #cf_app_header {
+                min-height: 120px;
+            }
+            #cf_app_header_title {
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+            }
+            .cf_app_instructions {
+                font-size: 1rem;
+                line-height: 1.5rem;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 110px;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+            .cf_app_instructions {
+                display: none;
+            }
+            #commentary-button {
+                width: fit-content;
+                justify-content: flex-start;
+                font-size: 1.1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 140px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+            }
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            .cf_logo {
+                max-width: 100%;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.3rem;
+                width: fit-content;
+                justify-content: flex-start;
+            }
+            #cf_estat_logo_link img {
+                content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                    <button id=&quot;commentary-button&quot; class=&quot;ecl-button ecl-button--call&quot; type=&quot;button&quot;>
+                        <span class=&quot;ecl-button__label&quot; data-ecl-label=&quot;true&quot;>
+                            <span class=&quot;read-sentence&quot;>Read the </span>Eurostat commentary
+                        </span>
+                    </button>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>" title="Before: title + button"></iframe>
+            </div>
+        </div>
+        <div class="iframe-outer" id="outer-title-button-after">
+            <div class="iframe-wrap" id="wrap-title-button-after">
+                <iframe srcdoc="
+<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE + BUTTON</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 120px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+        }
+
+        #commentary-button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: #FFCC00;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 1.2rem;
+            line-height: 1.5rem;
+            padding: 6px 12px;
+            justify-content: center;
+        }
+
+        #commentary-button svg {
+            margin-left: 4px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 120px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 180px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+            #commentary-button {
+                font-size: 1.4rem;
+                line-height: 1.8rem;
+                padding: 8px 16px;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+            #cf_app_header {
+                min-height: 120px;
+            }
+            #cf_app_header_title {
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+            }
+            .cf_app_instructions {
+                font-size: 1rem;
+                line-height: 1.5rem;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 110px;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+            .cf_app_instructions {
+                display: none;
+            }
+            #commentary-button {
+                width: fit-content;
+                justify-content: flex-start;
+                font-size: 1.1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 140px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+            }
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            .cf_logo {
+                max-width: 100%;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.3rem;
+                width: fit-content;
+                justify-content: flex-start;
+            }
+            #cf_estat_logo_link img {
+                content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                    <button id=&quot;commentary-button&quot; class=&quot;ecl-button ecl-button--call&quot; type=&quot;button&quot;>
+                        <span class=&quot;ecl-button__label&quot; data-ecl-label=&quot;true&quot;>
+                            <span class=&quot;read-sentence&quot;>Read the </span>Eurostat commentary
+                        </span>
+                    </button>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+" title="After: title + button"></iframe>
+            </div>
+        </div>
+    </div>
+    <div class="changes">
+        <h3>Key changes</h3>
+        <ul class="diff-list">
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header</code> → <code>min-height: 140px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header</code> → <code>min-height: 120px</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header_ribbon</code> → <code>height: 140px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header_ribbon</code> → <code>height: 120px</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>.cf_app_title</code> → <code>padding-top: 20px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>.cf_app_title</code> → no <code>padding-top</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>#commentary-button</code> @≥1200px → <code>margin-bottom: 20px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#commentary-button</code> @≥1200px → no <code>margin-bottom</code></span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════ PANEL 4 ══ -->
+<div class="panel" id="panel-title-subtitle-button">
+    <div class="controls">
+        <label>Simulated viewport:</label>
+        <input type="range" class="width-slider" min="320" max="1400" value="1400"
+               oninput="applySlider('title-subtitle-button', +this.value)">
+        <span class="width-value" id="wv-title-subtitle-button">1400px</span>
+    </div>
+    <div class="comparison" id="cmp-title-subtitle-button">
+        <div class="col-header before">Before<span>title-subtitle-button.html</span></div>
+        <div class="col-header after">After<span>c_title_subtitle_button.html</span></div>
+        <div class="iframe-outer" id="outer-title-subtitle-button-before">
+            <div class="iframe-wrap" id="wrap-title-subtitle-button-before">
+                <iframe srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE + SUBTITLE + BUTTON</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 180px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+            padding-top: 20px;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+        }
+
+        #commentary-button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: #FFCC00;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 1.2rem;
+            line-height: 1.5rem;
+            padding: 6px 12px;
+            justify-content: center;
+        }
+
+        #commentary-button svg {
+            margin-left: 4px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 180px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 180px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+            #commentary-button {
+                font-size: 1.4rem;
+                line-height: 1.8rem;
+                padding: 8px 16px;
+                margin-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+            #cf_app_header {
+                min-height: 160px;
+            }
+            #cf_app_header_title {
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+            }
+            .cf_app_instructions {
+                font-size: 1rem;
+                line-height: 1.5rem;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 130px;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+            .cf_app_instructions {
+                display: none;
+            }
+            #commentary-button {
+                width: fit-content;
+                justify-content: flex-start;
+                font-size: 1.1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 140px;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+            }
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            .cf_logo {
+                max-width: 100%;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.3rem;
+                width: fit-content;
+                justify-content: flex-start;
+            }
+            #cf_estat_logo_link img {
+                content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                    <div class=&quot;cf_app_instructions&quot;>Demonstration of a subtitle in a banner</div>  
+                    <button id=&quot;commentary-button&quot; class=&quot;ecl-button ecl-button--call&quot; type=&quot;button&quot;>
+                        <span class=&quot;ecl-button__label&quot; data-ecl-label=&quot;true&quot;>
+                            <span class=&quot;read-sentence&quot;>Read the </span>Eurostat commentary
+                        </span>
+                    </button>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>" title="Before: title + subtitle + button"></iframe>
+            </div>
+        </div>
+        <div class="iframe-outer" id="outer-title-subtitle-button-after">
+            <div class="iframe-wrap" id="wrap-title-subtitle-button-after">
+                <iframe srcdoc="
+<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+    <meta charset=&quot;UTF-8&quot;>
+    <meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+    <title>Title Responsiveness - TITLE + SUBTITLE + BUTTON</title>
+    <style>
+        html {
+            font-size: 100%;
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .cf_app_top {
+            width: 100%;
+            background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf_app_inner {
+            width: 100%;
+            padding: 0 16px;
+        }
+
+        #cf_app_header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            min-height: 150px;
+            position: relative;
+            gap: 16px;
+        }
+
+        #cf_app_header_title {
+            flex: 1;
+        }
+
+        .cf_app_title {
+            font-weight: 700;
+            margin: 0;
+            text-align: left;
+            font-size: 1.8rem;
+            line-height: 2.25rem;
+            color: #F3F6FC;
+            text-shadow: 0 0 4px #000;
+            margin-top: -10px;
+        }
+
+        .cf_app_instructions {
+            color: white;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-top: 4px;
+        }
+
+        #commentary-button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: #FFCC00;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 1.2rem;
+            line-height: 1.5rem;
+            padding: 6px 12px;
+            justify-content: center;
+        }
+
+        #commentary-button svg {
+            margin-left: 4px;
+        }
+
+        #cf_app_header_ribbon {
+            width: auto;
+            height: 150px;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        #cf_app_header_ribbon img {
+            height: 100%;
+            width: auto;
+            max-height: 180px;
+            display: block;
+            object-fit: contain;
+        }
+
+        #cf_estat_logo_link {
+            width: 190px;
+            display: flex;
+            align-items: center;
+        }
+
+        .cf_logo {
+            width: auto;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (min-width: 1200px) {
+            .cf_app_title {
+                font-size: 2.4rem;
+                line-height: 2.75rem;
+            }
+            .cf_app_instructions {
+                font-size: 1.4rem;
+                line-height: 1.75rem;
+            }
+            #commentary-button {
+                font-size: 1.4rem;
+                line-height: 1.8rem;
+                padding: 8px 16px;
+            }
+        }
+
+        @media (max-width: 1199px) {
+            #cf_app_header_ribbon {
+                display: none;
+            }
+            #cf_app_header {
+                min-height: 10px;
+            }
+            #cf_app_header_title {
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cf_app_title {
+                font-size: 1.8rem;
+                line-height: 2rem;
+            }
+            .cf_app_instructions {
+                font-size: 1rem;
+                line-height: 1.5rem;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 130px;
+            }
+        }
+
+        @media (max-width: 568px) {
+            .cf_app_top {
+                background: linear-gradient(280deg, #F6FAFC 0%, #AFDFE9 51%, #3E639D 73%, #122A75 90%, #082B7A 100%);
+            }
+            .cf_app_instructions {
+                display: none;
+            }
+            #commentary-button {
+                width: fit-content;
+                justify-content: flex-start;
+                font-size: 1.1rem;
+                line-height: 1.5rem;
+                padding: 6px 12px;
+            }
+            #cf_app_header {
+                min-height: 140px;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .cf_app_top {
+                background: linear-gradient(125deg, #082b7a 35%, #AFDFE9 75%, white 100%);
+            }
+            #cf_app_header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .cf_app_title {
+                font-size: 1.5rem;
+                line-height: 1.75rem;
+            }
+            #cf_estat_logo_link {
+                order: -1;
+                padding-top: 10px;
+            }
+            .cf_logo {
+                max-width: 100%;
+            }
+            #commentary-button {
+                font-size: 1rem;
+                line-height: 1.3rem;
+                width: fit-content;
+                justify-content: flex-start;
+            }
+            #cf_estat_logo_link img {
+                content: url('https://rawcdn.githack.com/TF-PRJ/ESTAT-title-responsiveness/d42c13fae7bd7f85bd8f47b3510bd43c6074d171/Estat-logo-negative.svg');
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=&quot;cf_app_top&quot; role=&quot;banner&quot;>
+        <div class=&quot;cf_app_inner&quot;>
+            <div id=&quot;cf_app_header&quot;>
+                <div id=&quot;cf_app_header_title&quot;>
+                    <h1 class=&quot;cf_app_title&quot; id=&quot;cf_app_title&quot;>Demonstration of a title in a banner</h1>
+                    <div class=&quot;cf_app_instructions&quot;>Demonstration of a subtitle in a banner</div>  
+                    <button id=&quot;commentary-button&quot; class=&quot;ecl-button ecl-button--call&quot; type=&quot;button&quot;>
+                        <span class=&quot;ecl-button__label&quot; data-ecl-label=&quot;true&quot;>
+                            <span class=&quot;read-sentence&quot;>Read the </span>Eurostat commentary
+                        </span>
+                    </button>
+                </div>
+                <div id=&quot;cf_app_header_ribbon&quot;>
+                    <img alt=&quot;&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/banner-graphical-element.svg&quot;>
+                </div>
+                <a id=&quot;cf_estat_logo_link&quot; tabindex=&quot;0&quot; href=&quot;https://ec.europa.eu/eurostat/&quot; target=&quot;_blank&quot;>
+                    <img alt=&quot;Home - Eurostat&quot; src=&quot;https://ec.europa.eu/eurostat/cache/visualisations/agriculturefacts/img/estat-logo-horizontal.svg&quot; class=&quot;cf_logo&quot;>
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+" title="After: title + subtitle + button"></iframe>
+            </div>
+        </div>
+    </div>
+    <div class="changes">
+        <h3>Key changes</h3>
+        <ul class="diff-list">
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header</code> → <code>min-height: 180px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header</code> → <code>min-height: 150px</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header_ribbon</code> → <code>height: 180px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header_ribbon</code> → <code>height: 150px</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>.cf_app_title</code> → <code>padding-top: 20px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>.cf_app_title</code> → <code>margin-top: -10px</code> — fine-tuned vertical alignment</span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>#commentary-button</code> @≥1200px → <code>margin-bottom: 20px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#commentary-button</code> @≥1200px → no <code>margin-bottom</code></span></li>
+            <li><span class="diff-tag removed">Before</span><span><code>#cf_app_header</code> @≤1199px → <code>min-height: 160px</code></span></li>
+            <li><span class="diff-tag added">After</span><span><code>#cf_app_header</code> @≤1199px → <code>min-height: 10px</code> — height driven by content</span></li>
+        </ul>
+    </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+    // ── Slider logic ────────────────────────────────────────────────────────
+    // Each iframe-outer has a fixed height (220px from CSS).
+    // The iframe-wrap inside is scaled so that the iframe renders at `targetW`
+    // pixels wide, then the scale shrinks it back to fit the outer container.
+    //
+    // outer width = half of .comparison width (since 2 columns).
+    // scale = outerW / targetW   (< 1 when targetW > outerW → zooms out)
+    // iframe natural width = targetW, natural height = 220px
+    // after scale the visual height = 220 * scale → we want it to fill 220px
+    // so we set iframe height = 220 / scale.
+
+    const OUTER_H = 220; // matches CSS height on .iframe-outer
+
+    function applySlider(key, targetW) {
+        document.getElementById('wv-' + key).textContent = targetW + 'px';
+
+        ['before', 'after'].forEach(side => {
+            const outer = document.getElementById('outer-' + key + '-' + side);
+            const wrap  = document.getElementById('wrap-' + key + '-' + side);
+            const iframe = wrap.querySelector('iframe');
+
+            const outerW = outer.offsetWidth;
+            if (!outerW) return; // panel hidden, skip
+
+            const scale = Math.min(1, outerW / targetW); // never upscale
+            const iframeW = targetW;
+            const iframeH = OUTER_H / scale;
+
+            wrap.style.width     = iframeW + 'px';
+            wrap.style.height    = iframeH + 'px';
+            wrap.style.transform = `scale(${scale})`;
+
+            iframe.style.width  = iframeW + 'px';
+            iframe.style.height = iframeH + 'px';
+        });
+    }
+
+    // ── Tab switching ────────────────────────────────────────────────────────
+    function showPanel(id, btn) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('panel-' + id).classList.add('active');
+        btn.classList.add('active');
+
+        // Apply slider for newly visible panel
+        const slider = document.querySelector('#panel-' + id + ' .width-slider');
+        if (slider) applySlider(id, +slider.value);
+    }
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    // Run after layout is ready so offsetWidth is accurate.
+    window.addEventListener('load', () => {
+        document.querySelectorAll('.panel.active .width-slider').forEach(s => {
+            const panelId = s.closest('.panel').id.replace('panel-', '');
+            applySlider(panelId, +s.value);
+        });
+    });
+
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.panel.active .width-slider').forEach(s => {
+            const panelId = s.closest('.panel').id.replace('panel-', '');
+            applySlider(panelId, +s.value);
+        });
+    });
+</script>
+
+</body>
+</html>
